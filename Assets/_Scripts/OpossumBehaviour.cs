@@ -2,6 +2,13 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum RampDirection
+{
+    NONE,
+    UP,
+    DOWN
+}
+
 public class OpossumBehaviour : MonoBehaviour
 {
     public float runSpeed;
@@ -12,7 +19,8 @@ public class OpossumBehaviour : MonoBehaviour
     public bool isGroundedAhead;
     public LayerMask collisionGroundLayer;
     public LayerMask collisionWallLayer;
-    public float direction;
+    public bool onRamp;
+    public RampDirection rampDirection;
 
     // Start is called before the first frame update
     void Start()
@@ -20,7 +28,7 @@ public class OpossumBehaviour : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         rigidbody2D = GetComponent<Rigidbody2D>();
         isGroundedAhead = false;
-        direction = 1.0f;
+        rampDirection = RampDirection.NONE;
         //rigidbody2D.velocity = Vector2.left * runSpeed;
     }
 
@@ -39,10 +47,21 @@ public class OpossumBehaviour : MonoBehaviour
 
     private void _LookInFront()
     {
-        if(Physics2D.Linecast(transform.position, lookInFrontPoint.position, collisionWallLayer))
+        var wallHit = Physics2D.Linecast(transform.position, lookInFrontPoint.position, collisionWallLayer);
+        if (wallHit)
         {
-            _FlipX();
-            direction *= -1.0f;
+            if (wallHit.collider.CompareTag("Ramps") == false)
+            {
+                if (!onRamp)
+                {
+                    _FlipX();
+                }
+                rampDirection = RampDirection.DOWN;
+            }
+            else
+            {
+                rampDirection = RampDirection.UP;
+            }
         }
 
         Debug.DrawLine(transform.position, lookInFrontPoint.position, Color.red);
@@ -54,6 +73,14 @@ public class OpossumBehaviour : MonoBehaviour
 
         if(hit.collider != null)
         {
+            if(hit.collider.CompareTag("Ramps"))
+            {
+                onRamp = true;
+            }
+            else if(hit.collider.CompareTag("Platforms"))
+            {
+                onRamp = false;
+            }
             isGroundedAhead = true;
         }
         else
@@ -77,16 +104,31 @@ public class OpossumBehaviour : MonoBehaviour
     {
         if (isGroundedAhead)
         {
-            rigidbody2D.AddForce(Vector2.left * runSpeed * Time.deltaTime * direction);
+            rigidbody2D.AddForce(Vector2.left * runSpeed * Time.deltaTime * transform.localScale.x);
+
+            if (onRamp)
+            {
+                if (rampDirection == RampDirection.UP)
+                {
+                    rigidbody2D.AddForce(Vector2.up * runSpeed * 0.5f * Time.deltaTime);
+                }
+
+                transform.rotation = Quaternion.Euler(0.0f, 0.0f, -26.0f);
+
+            }
+            else
+            {
+                transform.rotation = Quaternion.Euler(0.0f, 0.0f, 0.0f);
+            }
+
+            rigidbody2D.velocity *= 0.90f;
         }
         else
         {
             _FlipX();
-            direction *= -1.0f;
         }
 
         
-        rigidbody2D.velocity *= 0.90f;
 
         //rigidbody2D.velocity = Vector2.left * runSpeed;
         //transform.position += new Vector3(rigidbody2D.velocity.x * runSpeed, 0.0f, 0.0f);
