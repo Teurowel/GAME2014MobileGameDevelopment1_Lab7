@@ -8,8 +8,10 @@ public class OpossumBehaviour : MonoBehaviour
     public SpriteRenderer spriteRenderer;
     public Rigidbody2D rigidbody2D;
     public Transform lookAheadPoint;
+    public Transform lookInFrontPoint;
     public bool isGroundedAhead;
-    public LayerMask layerMask;
+    public LayerMask collisionGroundLayer;
+    public LayerMask collisionWallLayer;
     public float direction;
 
     // Start is called before the first frame update
@@ -30,14 +32,25 @@ public class OpossumBehaviour : MonoBehaviour
 
     private void FixedUpdate()
     {
+        _LookInFront();
         _LookAhead();
         _Move(); 
     }
 
+    private void _LookInFront()
+    {
+        if(Physics2D.Linecast(transform.position, lookInFrontPoint.position, collisionWallLayer))
+        {
+            _FlipX();
+            direction *= -1.0f;
+        }
+
+        Debug.DrawLine(transform.position, lookInFrontPoint.position, Color.red);
+    }
 
     private void _LookAhead()
     {
-        var hit = Physics2D.Linecast(transform.position, lookAheadPoint.position, layerMask);
+        var hit = Physics2D.Linecast(transform.position, lookAheadPoint.position, collisionGroundLayer);
 
         if(hit.collider != null)
         {
@@ -68,7 +81,7 @@ public class OpossumBehaviour : MonoBehaviour
         }
         else
         {
-            transform.localScale = new Vector3(transform.localScale.x * -1.0f, transform.localScale.y, transform.localScale.z);
+            _FlipX();
             direction *= -1.0f;
         }
 
@@ -78,6 +91,11 @@ public class OpossumBehaviour : MonoBehaviour
         //rigidbody2D.velocity = Vector2.left * runSpeed;
         //transform.position += new Vector3(rigidbody2D.velocity.x * runSpeed, 0.0f, 0.0f);
         //rigidbody2D
+    }
+
+    private void _FlipX()
+    {
+        transform.localScale = new Vector3(transform.localScale.x * -1.0f, transform.localScale.y, transform.localScale.z);
     }
 
 
