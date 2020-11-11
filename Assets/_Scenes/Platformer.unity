@@ -2395,7 +2395,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b2b7cc8117d66e541a29a5f84c04bc18, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  runSpeed: 1200
+  runSpeed: 1000
   spriteRenderer: {fileID: 0}
   rigidbody2D: {fileID: 0}
   lookAheadPoint: {fileID: 767339814}
